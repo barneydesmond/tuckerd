@@ -1,47 +1,43 @@
 #!/usr/bin/env python
 
-import socket
+import SocketServer
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class MyTCPHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        print "Prey at %s" % self.client_address[0]
 
-HOST = raw_input("IP for Malcolm to listen on: ")
-PORT = 23
+        self.insults = []
+        self.insults.append("")
+        self.insults.append("\nfucking wrong shitehead, try again.\n")
+        self.insults.append("\nstill fucking wrong shitehead, try again.\n")
+        self.insults.append("\nFUCK ME. Wrong again, I am so fucking surprised, try again.\n")
 
-s.bind((HOST, PORT))
+        self.request.sendall("Come the fuck in, or fuck the fuck off.\n")
 
-print 'Malcolm awaits his prey'
-s.listen(1)
+        self.request.sendall("fucking username: ")
+        prey_username = self.request.recv(1024).strip()
+        print "victim supplied: %s as username." % prey_username
+
+        for i in range(4):
+            if self.insults[i]:
+                self.request.sendall(self.insults[i])
+            self.request.sendall("fucking password: ")
+            prey_password = self.preypassword1 = self.request.recv(1024).strip()
+            print "victim supplied: %s as password." % prey_password
+
+        # nope.jpg
+        print "Administering a bollocking to %s" % self.client_address[0]
+        self.request.sendall("\nYou have proven yourself to be as useful as a marzipan dildo.\nYou connect here again, you mincing fucking CUNT, and I will tear your fucking skin off, I will wear it to your mother's birthday party, and rub your nuts up and down her leg whilst whistling Bohemian fucking Rhapsody, right?\n\nNow get out of my fucking sight.\n")
+        print
 
 
-while 1:
-	conn, addr = s.accept()
-	print 'Prey at: ', addr
+if __name__ == "__main__":
+    HOST = raw_input("IP for Malcolm to listen on, use 0.0.0.0 for open access: ")
+    PORT = 9999
 
-	#the welcome
-	conn.send("Come the fuck in, or fuck the fuck off.\n")
-	conn.send("fucking username: ")
-	preyuname = conn.recv(20)
-	print "victim supplied: ", preyuname, " as username."
-	conn.send("\nfucking password: ")
-	preypasw = conn.recv(20)
-	print "victim supplied: ", preypasw, " as password."
-	
-	conn.send("\nfucking wrong shitehead, try again.")
-	conn.send("\nfucking password: ")
-	preypasw1 = conn.recv(20)
-	print "victim supplied: ", preypasw1, " as password."
-	
-	conn.send("\nstill fucking wrong shitehead, try again.")
-	conn.send("\nfucking password: ")
-	preypasw2 = conn.recv(20)
-	print "victim supplied: ", preypasw2, " as password."
+    SocketServer.TCPServer.allow_reuse_address = True
+    server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
+    print "Malcolm awaits his prey on %s:%s" % (HOST, PORT)
 
-	conn.send("\nFUCK ME. Wrong again, I am so fucking surprised, try again.")
-	conn.send("\nfucking password: ")
-	preypasw3 = conn.recv(20)
-	print "victim supplied: ", preypasw3, " as password."
-
-	print "Administering a bollocking to", addr
-	conn.send("\nYou have proven yourself to be as useful as a marzipan dildo.\nYou connect here again, you mincing fucking CUNT, and I will tear your fucking skin off, I will wear it to your mother's birthday party, and rub your nuts up and down her leg whilst whistling Bohemian fucking Rhapsody, right?\n\nNow get out of my fucking sight.\n")
-	conn.close()
-s.listen(1)
+    # Keep running until we're killed with Ctrl-C
+    server.serve_forever()
